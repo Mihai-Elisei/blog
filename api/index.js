@@ -1,7 +1,6 @@
-import { error } from "console";
+import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 
 dotenv.config();
 
