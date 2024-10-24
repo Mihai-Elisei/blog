@@ -48,7 +48,7 @@ function Header() {
 
         {/* Sign-in button */}
         <Link to="/sign-in">
-          <Button gradientDuoTone="purpleToBlue">Sign In</Button> {/* Gradient-styled sign-in button */}
+          <Button gradientDuoTone="purpleToBlue" outline>Sign In</Button> {/* Gradient-styled sign-in button */}
         </Link>
 
         {/* Navbar toggle button (visible on smaller screens) */}
