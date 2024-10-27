@@ -28,6 +28,7 @@ function DashSidebar() {
               icon={HiUser} // Display user icon
               label={"User"} // Label text next to the icon
               labelColor="dark" // Dark label color
+              as='div'
             >
               Profile
             </Sidebar.Item>
