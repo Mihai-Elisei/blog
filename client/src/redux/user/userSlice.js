@@ -1,64 +1,84 @@
 // Import the `createSlice` function from Redux Toolkit to help create a slice of the state.
 import { createSlice } from "@reduxjs/toolkit";
+import { deleteUser } from "../../../../api/controllers/user.controller"; // Importing the deleteUser function from the user controller.
 
-// Define the initial state for the user slice, which will hold the current user data,
+// Define the initial state for the user slice, which holds the current user data,
 // error message if there's any, and loading status.
 const initialState = {
   currentUser: null, // Stores the authenticated user data; null when no user is signed in.
-  error: null, // Stores any error message related to user sign-in attempts.
-  loading: false // Indicates whether a sign-in process is ongoing.
+  error: null, // Stores any error message related to user actions (sign-in, update, delete).
+  loading: false // Indicates whether an asynchronous process (like sign-in or update) is ongoing.
 };
 
-// Create a user slice with the name "user" and initial state defined above.
-// This slice contains reducers that will handle sign-in and user update actions.
+// Create a user slice with the name "user" and the initial state defined above.
+// This slice contains reducers that will handle sign-in, user update, and user deletion actions.
 const userSlice = createSlice({
   name: "user", // Name of the slice; used to identify it in the Redux store.
   initialState, // Initial state of this slice.
   reducers: {
     // Action to start the sign-in process; sets loading to true and clears any existing errors.
     signInStart: (state) => {
-      state.loading = true; // Indicate that loading is in progress.
-      state.error = null; // Clear any previous error.
+      state.loading = true; // Indicate that loading is in progress during sign-in.
+      state.error = null; // Clear any previous error messages.
     },
-    // Action to handle a successful sign-in; sets the current user data and clears loading and error states.
+    // Action to handle a successful sign-in; updates the current user and resets loading and error states.
     signInSuccess: (state, action) => {
-      state.currentUser = action.payload; // Update the current user with the payload data (user info).
+      state.currentUser = action.payload; // Update current user with the authenticated user data from payload.
       state.loading = false; // End loading state as sign-in was successful.
       state.error = null; // Clear any previous error since sign-in was successful.
     },
-    // Action to handle a failed sign-in; stops loading and sets an error message.
+    // Action to handle a failed sign-in; stops loading and sets an error message from the payload.
     signInFailure: (state, action) => {
-      state.loading = false; // End loading state as sign-in has failed.
-      state.error = action.payload; // Set error message from payload (typically error details).
+      state.loading = false; // End loading state due to sign-in failure.
+      state.error = action.payload; // Capture the error message from the payload (typically error details).
     },
     // Action to start the user update process; sets loading to true and clears any existing errors.
     updateStart: (state) => {
-      state.loading = true; // Indicate that loading is in progress for updating user.
+      state.loading = true; // Indicate that the loading state is true for user updates.
       state.error = null; // Clear any previous error before starting the update.
     },
-    // Action to handle a successful user update; updates the current user and refreshes state accordingly.
+    // Action to handle a successful user update; updates the current user data with new information.
     updateSuccess: (state, action) => {
-      state.currentUser = action.payload; // Update the current user data with the new payload (updated user info).
-      state.loading = false; // End loading state as update was successful.
-      state.error = null; // Clear any previous error since update was successful.
+      state.currentUser = action.payload; // Update the current user with the new payload (updated user info).
+      state.loading = false; // End loading state as the update was successful.
+      state.error = null; // Clear any previous error since the update was successful.
     },
-    // Action to handle a failed user update; stops loading and sets an error message.
+    // Action to handle a failed user update; stops loading and sets an error message from the payload.
     updateFailure: (state, action) => {
-      state.loading = false; // End loading state as update has failed.
-      state.error = action.payload; // Set error message from payload (typically error details).
+      state.loading = false; // End loading state due to failed update.
+      state.error = action.payload; // Capture the error message from the payload (typically error details).
+    },
+    // Action to start the user deletion process; sets loading to true and clears any existing errors.
+    deleteUserStart: (state) => {
+      state.loading = true; // Indicate that loading is in progress for deleting the user.
+      state.error = null; // Clear any previous error before starting deletion.
+    },
+    // Action to handle a successful user deletion; resets the current user and updates loading state.
+    deleteUserSuccess: (state) => {
+      state.currentUser = null; // Clear current user data upon successful deletion.
+      state.loading = false; // End loading state as deletion was successful.
+      state.error = null; // Clear any previous error since deletion was successful.
+    },
+    // Action to handle a failed user deletion; stops loading and sets an error message from the payload.
+    deleteUserFailure: (state, action) => {
+      state.loading = false; // End loading state due to failed deletion.
+      state.error = action.payload; // Capture the error message from the payload.
     }
   }
 });
 
 // Export the action creators generated by `createSlice` for each reducer.
-// These can be dispatched in components to trigger state changes.
+// These action creators can be dispatched in components to trigger state changes.
 export const {
   signInStart,
   signInSuccess,
   signInFailure,
   updateStart,
   updateSuccess,
-  updateFailure
+  updateFailure,
+  deleteUserStart,
+  deleteUserSuccess,
+  deleteUserFailure
 } = userSlice.actions;
 
 // Export the user slice reducer to be used in the Redux store.
