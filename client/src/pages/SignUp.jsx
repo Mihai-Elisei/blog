@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react"; // Importing UI components from Flowbite-React.
 import { Link, useNavigate } from "react-router-dom"; // Importing Link for navigation and useNavigate for programmatic redirection.
+import OAuth from "../components/OAuth";
 
 function SignUp() {
   // State to hold form data, error message, and loading status.
@@ -135,6 +136,7 @@ function SignUp() {
                 "Sign Up"
               )}
             </Button>
+            <OAuth />
           </form>
 
           {/* Link to sign-in page if the user already has an account */}

@@ -1,95 +1,139 @@
-import User from "../models/user.model.js"; // Importing the User model to interact with the users collection in the database.
-import bcryptjs from "bcryptjs"; // Importing bcryptjs to hash passwords securely.
-import { errorHandler } from "../utils/error.js"; // Importing the custom error handler utility.
-import jwt from "jsonwebtoken"; // Importing JSON Web Token for creating tokens.
+import User from "../models/user.model.js"; // Import User model to interact with the database.
+import bcryptjs from "bcryptjs"; // Import bcryptjs for securely hashing passwords.
+import { errorHandler } from "../utils/error.js"; // Import custom error handler utility.
+import jwt from "jsonwebtoken"; // Import JWT for creating tokens.
 
 export const signup = async (req, res, next) => {
-  // Destructure username, email, and password from the request body.
   const { username, email, password } = req.body;
 
-  // Check if any of the required fields (username, email, password) are missing or empty.
+  // Validate that required fields are provided and not empty.
   if (
     !username ||
-    username === "" || // Check if username is not provided or is an empty string.
     !email ||
-    email === "" || // Check if email is not provided or is an empty string.
     !password ||
-    password === "" // Check if password is not provided or is an empty string.
+    username === "" ||
+    email === "" ||
+    password === ""
   ) {
-    // If any field is missing, pass a 400 error to the error handling middleware using 'next'.
-    next(errorHandler(400, "All fields are required"));
-    return; // Ensure the function stops execution here after handling the error.
+    return next(errorHandler(400, "All fields are required"));
   }
 
-  // Hash the password using bcryptjs with a salt factor of 12 (a higher number makes the hash stronger but slower to compute).
+  // Hash the password securely using bcrypt with a salt factor of 12.
   const hashedPassword = bcryptjs.hashSync(password, 12);
 
-  // Create a new user instance using the provided username, email, and the hashed password.
+  // Create a new user instance with the hashed password.
   const newUser = new User({
-    username, // Username from the request body.
-    email, // Email from the request body.
-    password: hashedPassword // Store the securely hashed password.
+    username,
+    email,
+    password: hashedPassword
   });
 
   try {
     // Save the new user to the database.
     await newUser.save();
-
-    // If the user is saved successfully, send a success message to the client.
-    res.json("Signup Successfully!");
+    res.json("Signup Successfully!"); // Send a success message on successful signup.
   } catch (error) {
-    // If an error occurs (e.g., database issue), pass it to the error handling middleware with 'next'.
-    next(error);
+    next(error); // Pass any errors to error handling middleware.
   }
 };
 
 export const signin = async (req, res, next) => {
-  // Destructure email and password from the request body for sign-in.
   const { email, password } = req.body;
 
-  // Validate that both email and password are provided and not empty.
+  // Validate that email and password are provided and not empty.
   if (!email || !password || email === "" || password === "") {
-    next(errorHandler(400, "All fields are required")); // Pass error to the error handler.
-    return; // Stop execution after handling the error.
+    return next(errorHandler(400, "All fields are required"));
   }
 
   try {
     // Find the user in the database by email.
     const validUser = await User.findOne({ email });
 
-    // Check if validUser exists before comparing passwords.
+    // If user does not exist, return an error.
     if (!validUser) {
-      return next(errorHandler(404, "Invalid credentials")); // Handle case where user is not found.
+      return next(errorHandler(404, "Invalid credentials"));
     }
 
-    // Compare the provided password with the hashed password stored in the database.
+    // Check if the provided password matches the hashed password.
     const validPassword = bcryptjs.compareSync(password, validUser.password);
-
-    // Check if the password matches.
     if (!validPassword) {
-      return next(errorHandler(404, "Invalid credentials")); // Pass error if password does not match.
+      return next(errorHandler(404, "Invalid credentials"));
     }
 
-    // Create a JWT token for the authenticated user.
-    const token = jwt.sign(
-      {
-        id: validUser._id // Storing user ID in the token payload.
-      },
-      process.env.JWT_SECRET_KEY // The secret key for signing the token.
-    );
+    // Generate JWT token with user ID as payload.
+    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "1h"
+    });
 
-    // Remove the password from the user object before sending the response.
+    // Remove password from user object before sending the response.
     const { password: pass, ...rest } = validUser._doc;
 
-    // Send the token as a cookie and return the user data as a response.
+    // Send the token as an HTTP-only cookie and return user data excluding password.
     res
       .status(200)
       .cookie("access_token", token, {
-        httpOnly: true // The cookie will be accessible only by the web server.
+        httpOnly: true
       })
-      .json(rest); // Send the authenticated user data back as JSON, excluding the password.
+      .json(rest);
   } catch (error) {
-    // If an error occurs during the sign-in process, pass it to the error handler.
-    next(error);
+    next(error); // Pass any errors to error handling middleware.
+  }
+};
+
+// Google authentication function
+export const google = async (req, res, next) => {
+  const { email, name, googlePhotoUrl } = req.body;
+
+  try {
+    // Check if a user with the given email already exists.
+    let user = await User.findOne({ email });
+
+    // If user exists, generate a JWT and return the user data.
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
+        expiresIn: "1h"
+      });
+      const { password, ...rest } = user._doc;
+      return res
+        .status(200)
+        .cookie("access_token", token, {
+          httpOnly: true
+        })
+        .json(rest);
+    } else {
+      // If user does not exist, create a new user with a random generated password.
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, 12);
+
+      user = new User({
+        username:
+          name.toLowerCase().split(" ").join("") +
+          Math.random().toString(9).slice(-4),
+        email,
+        password: hashedPassword,
+        profilePicture: googlePhotoUrl
+      });
+
+      await user.save(); // Save the new user to the database.
+
+      // Generate JWT token for the new user and return user data.
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
+        expiresIn: "1h"
+      });
+      const { password, ...rest } = user._doc;
+      return res
+        .status(200)
+        .cookie("access_token", token, {
+          httpOnly: true
+        })
+        .json(rest);
+    }
+  } catch (error) {
+    console.error("Error in google authentication route:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };

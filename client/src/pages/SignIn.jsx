@@ -7,6 +7,7 @@ import {
   signInSuccess,
   signInFailure
 } from "../redux/user/userSlice"; // Importing Redux actions for handling sign-in states.
+import OAuth from "../components/OAuth";
 
 function SignIn() {
   // Local state to manage form data.
@@ -123,6 +124,7 @@ function SignIn() {
                 "Sign In"
               )}
             </Button>
+            <OAuth />
           </form>
 
           {/* Link to sign-up page if user does not have an account */}
