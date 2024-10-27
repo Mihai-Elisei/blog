@@ -5,15 +5,36 @@ import { AiOutlineSearch } from "react-icons/ai"; // Import search icon
 import { FaMoon, FaSun } from "react-icons/fa"; // Import icons for theme toggle
 import { useSelector, useDispatch } from "react-redux"; // Import Redux hooks
 import { toggleTheme } from "../redux/theme/themeSlice"; // Import theme toggle action
+import { signoutSuccess } from "../redux/user/userSlice"; // Import signout action
 
 function Header() {
-  const path = useLocation().pathname; // Get the current path to set active navbar links
-  const dispatch = useDispatch();
+  // Get the current path to set active navbar links
+  const path = useLocation().pathname;
+  const dispatch = useDispatch(); // Get the dispatch function for Redux actions
   const { currentUser } = useSelector((state) => state.user); // Access the current user from Redux state
   const { theme } = useSelector((state) => state.theme); // Access current theme from Redux state
 
+  // Function to handle user sign out
+  const handleSignout = async () => {
+    try {
+      const res = await fetch("/api/user/signout", {
+        method: "POST" // Set method to POST for signing out
+      });
+      const data = await res.json(); // Parse response data to JSON
+      if (!res.ok) {
+        console.log(data.message); // Log the success message if signout fails
+      } else {
+        dispatch(signoutSuccess()); // Dispatch success upon successful signout
+      }
+    } catch (error) {
+      console.log(error.message); // Log any error that occurs during the fetch
+    }
+  };
+
   return (
     <Navbar className="border-b-2">
+      {" "}
+      {/* Navbar container with a border */}
       {/* Logo links to homepage */}
       <Link
         to="/"
@@ -25,7 +46,6 @@ function Header() {
         </span>
         Blog
       </Link>
-
       {/* Search input for large screens */}
       <form>
         <TextInput
@@ -35,25 +55,24 @@ function Header() {
           className="hidden lg:inline" // Show only on large screens
         />
       </form>
-
       {/* Search button for mobile screens */}
       <Button className="w-12 h-10 lg:hidden" color="gray" pill>
         <AiOutlineSearch />
       </Button>
-
       <div className="flex gap-2 md:order-2">
+        {" "}
+        {/* Container for right-aligned elements */}
         {/* Theme toggle button for larger screens */}
         <Button
           className="w-12 h-10 hidden sm:inline"
           color="gray"
           pill
-          onClick={() => dispatch(toggleTheme())}
+          onClick={() => dispatch(toggleTheme())} // Dispatch theme toggle action
         >
-          {theme === "light" ? <FaMoon /> : <FaSun />}
-          {/* Sun icon for light mode, Moon icon for dark mode */}
+          {theme === "light" ? <FaMoon /> : <FaSun />}{" "}
+          {/* Show icon based on current theme */}
         </Button>
-
-        {/* Display user profile or sign-in button based on authentication status */}
+        {/* Display user profile dropdown or sign-in button based on authentication status */}
         {currentUser ? (
           <Dropdown
             arrowIcon={false}
@@ -72,20 +91,20 @@ function Header() {
               <Dropdown.Item>Profile</Dropdown.Item>
             </Link>
             <Dropdown.Divider />
-            <Dropdown.Item>Sign Out</Dropdown.Item>
+            <Dropdown.Item onClick={handleSignout}>Sign Out</Dropdown.Item>
           </Dropdown>
         ) : (
           <Link to="/sign-in">
+            {" "}
+            {/* Link to sign-in page if user is not authenticated */}
             <Button gradientDuoTone="purpleToBlue" outline>
               Sign In
             </Button>
           </Link>
         )}
-
         {/* Navbar toggle button for mobile screens */}
         <Navbar.Toggle />
       </div>
-
       {/* Collapsible navbar links */}
       <Navbar.Collapse>
         {/* Link to home, active if current path is '/' */}

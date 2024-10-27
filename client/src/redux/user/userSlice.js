@@ -1,6 +1,5 @@
 // Import the `createSlice` function from Redux Toolkit to help create a slice of the state.
 import { createSlice } from "@reduxjs/toolkit";
-import { deleteUser } from "../../../../api/controllers/user.controller"; // Importing the deleteUser function from the user controller.
 
 // Define the initial state for the user slice, which holds the current user data,
 // error message if there's any, and loading status.
@@ -63,6 +62,12 @@ const userSlice = createSlice({
     deleteUserFailure: (state, action) => {
       state.loading = false; // End loading state due to failed deletion.
       state.error = action.payload; // Capture the error message from the payload.
+    },
+    // Action for handling successful signout.
+    signoutSuccess: (state) => {
+      state.currentUser = null; // Clear the current user data.
+      state.loading = false; // Set loading to false after signing out.
+      state.error = null; // Clear any error messages.
     }
   }
 });
@@ -78,7 +83,8 @@ export const {
   updateFailure,
   deleteUserStart,
   deleteUserSuccess,
-  deleteUserFailure
+  deleteUserFailure,
+  signoutSuccess
 } = userSlice.actions;
 
 // Export the user slice reducer to be used in the Redux store.

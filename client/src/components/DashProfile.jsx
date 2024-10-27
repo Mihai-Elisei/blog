@@ -16,11 +16,11 @@ import {
   updateFailure,
   deleteUserStart,
   deleteUserSuccess,
-  deleteUserFailure
+  deleteUserFailure,
+  signoutSuccess
 } from "../redux/user/userSlice"; // Importing Redux actions for user updates and deletion
 import { useDispatch } from "react-redux"; // Importing useDispatch to dispatch actions to the Redux store
 import { HiOutlineExclamationCircle } from "react-icons/hi"; // Importing an icon component for the modal
-import { set } from "mongoose"; // This should be removed as it is unused in the code
 
 function DashProfile() {
   // Accessing the current user and error state from the Redux store
@@ -154,12 +154,31 @@ function DashProfile() {
     }
   };
 
+  // Function to handle user sign out
+  const handleSignout = async () => {
+    try {
+      const res = await fetch("/api/user/signout", {
+        method: "POST" // Set method to POST for signing out
+      });
+      const data = await res.json(); // Parse response data to JSON
+      if (!res.ok) {
+        console.log(data.message); // Log the success message
+      } else {
+        dispatch(signoutSuccess()); // Dispatch success upon successful signout
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
+      {" "}
       {/* Main container for the profile */}
-      <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
+      <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>{" "}
       {/* Header for profile section */}
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        {" "}
         {/* Form for updating profile information */}
         <input
           type="file"
@@ -241,7 +260,9 @@ function DashProfile() {
         <span onClick={() => setShowModal(true)} className="cursor-pointer">
           Delete Account {/* Link to trigger deletion modal */}
         </span>
-        <span className="cursor-pointer">Sign Out</span>{" "}
+        <span onClick={handleSignout} className="cursor-pointer">
+          Sign Out
+        </span>{" "}
         {/* Link to sign out */}
       </div>
       {/* Display success or error messages upon update */}
