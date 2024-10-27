@@ -49,7 +49,7 @@ function Header() {
           pill
           onClick={() => dispatch(toggleTheme())}
         >
-          {theme === "light" ? <FaSun /> : <FaMoon />}{" "}
+          {theme === "light" ? <FaMoon /> : <FaSun />}
           {/* Sun icon for light mode, Moon icon for dark mode */}
         </Button>
 
