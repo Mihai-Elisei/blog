@@ -61,9 +61,13 @@ export const signin = async (req, res, next) => {
     }
 
     // Generate JWT token with user ID as payload.
-    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "1h"
-    });
+    const token = jwt.sign(
+      { id: validUser._id, isAdmin: validUser.isAdmin },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "1h"
+      }
+    );
 
     // Remove password from user object before sending the response.
     const { password: pass, ...rest } = validUser._doc;
@@ -90,9 +94,13 @@ export const google = async (req, res, next) => {
 
     // If user exists, generate a JWT and return the user data.
     if (user) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
-        expiresIn: "1h"
-      });
+      const token = jwt.sign(
+        { id: user._id, isAdmin: user.isAdmin },
+        process.env.JWT_SECRET_KEY,
+        {
+          expiresIn: "1h"
+        }
+      );
       const { password, ...rest } = user._doc;
       return res
         .status(200)
@@ -119,9 +127,13 @@ export const google = async (req, res, next) => {
       await user.save(); // Save the new user to the database.
 
       // Generate JWT token for the new user and return user data.
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
-        expiresIn: "1h"
-      });
+      const token = jwt.sign(
+        { id: user._id, isAdmin: newUser.isAdmin },
+        process.env.JWT_SECRET_KEY,
+        {
+          expiresIn: "1h"
+        }
+      );
       const { password, ...rest } = user._doc;
       return res
         .status(200)
