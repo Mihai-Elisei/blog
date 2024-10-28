@@ -1,15 +1,16 @@
-import { Alert, Button, Modal, TextInput } from "flowbite-react"; // Importing necessary components from the Flowbite library
-import React, { useEffect, useRef, useState } from "react"; // Importing React and necessary React hooks
-import { useSelector } from "react-redux"; // Importing useSelector to access Redux state
+import { Alert, Button, Modal, TextInput } from "flowbite-react"; // Import components from Flowbite library
+import React, { useEffect, useRef, useState } from "react"; // Import React and necessary hooks
+import { useSelector } from "react-redux"; // Import useSelector for accessing Redux state
 import {
   getDownloadURL,
   getStorage,
   uploadBytesResumable,
   ref
-} from "firebase/storage"; // Importing Firebase storage functions for uploading files
-import { app } from "../firebase"; // Importing the initialized Firebase app instance
-import { CircularProgressbar } from "react-circular-progressbar"; // Importing circular progress bar component
-import "react-circular-progressbar/dist/styles.css"; // Importing styles for the circular progress bar
+} from "firebase/storage"; // Import Firebase storage functions for file upload
+import { app } from "../firebase"; // Import initialized Firebase app instance
+import { CircularProgressbar } from "react-circular-progressbar"; // Import progress bar component for upload progress
+import "react-circular-progressbar/dist/styles.css"; // Import CSS for progress bar
+import { Link } from "react-router-dom"; // Import Link for navigation
 import {
   updateStart,
   updateSuccess,
@@ -18,153 +19,145 @@ import {
   deleteUserSuccess,
   deleteUserFailure,
   signoutSuccess
-} from "../redux/user/userSlice"; // Importing Redux actions for user updates and deletion
-import { useDispatch } from "react-redux"; // Importing useDispatch to dispatch actions to the Redux store
-import { HiOutlineExclamationCircle } from "react-icons/hi"; // Importing an icon component for the modal
+} from "../redux/user/userSlice"; // Import Redux actions
+import { useDispatch } from "react-redux"; // Import useDispatch to dispatch Redux actions
+import { HiOutlineExclamationCircle } from "react-icons/hi"; // Import icon for modal
 
 function DashProfile() {
-  // Accessing the current user and error state from the Redux store
-  const { currentUser, error } = useSelector((state) => state.user);
+  // Access current user and error state from Redux store
+  const { currentUser, error, loading } = useSelector((state) => state.user);
 
-  // State variables to manage profile updates and image uploads
-  const [imageFile, setImageFile] = useState(null); // State to hold the selected image file
-  const [imageFileUrl, setImageFileUrl] = useState(null); // State to hold the URL of the uploaded image
+  // States for managing profile updates and image uploads
+  const [imageFile, setImageFile] = useState(null); // State for selected image file
+  const [imageFileUrl, setImageFileUrl] = useState(null); // State for image file URL after upload
   const [imageFileUploadingProgress, setImageFileUploadingProgress] =
-    useState(null); // State for tracking upload progress
-  const [imageFileUploadError, setImageFileUploadError] = useState(null); // State to store upload errors
-  const [imageFileUploading, setImageFileUploading] = useState(false); // State for current upload status
-  const [updateUserSuccess, setUpdateUserSuccess] = useState(null); // State for successful updates
-  const [updateUserError, setUpdateUserError] = useState(null); // State for update errors
-  const [showModal, setShowModal] = useState(false); // State to control modal visibility for account deletion
-  const [formData, setFormData] = useState({}); // State to hold the form data for user updates
-  const filePickerRef = useRef(); // Ref for the file input element for profile picture selection
-  const dispatch = useDispatch(); // Function to dispatch actions to the Redux store
+    useState(null); // State for upload progress
+  const [imageFileUploadError, setImageFileUploadError] = useState(null); // State for upload error
+  const [imageFileUploading, setImageFileUploading] = useState(false); // State for upload status
+  const [updateUserSuccess, setUpdateUserSuccess] = useState(null); // State for update success message
+  const [updateUserError, setUpdateUserError] = useState(null); // State for update error message
+  const [showModal, setShowModal] = useState(false); // State to control account deletion modal visibility
+  const [formData, setFormData] = useState({}); // State to hold form data for user updates
+  const filePickerRef = useRef(); // Ref for file input element
+  const dispatch = useDispatch(); // Function to dispatch actions to Redux store
 
-  // Function to handle image file selection
+  // Handle file selection for profile picture upload
   const handleImageChange = (e) => {
-    const file = e.target.files[0]; // Get the selected file
+    const file = e.target.files[0]; // Get selected file
     if (file) {
-      setImageFile(file); // Set the state with the selected image file
-      setImageFileUrl(URL.createObjectURL(file)); // Create a temporary URL for the selected image
+      setImageFile(file); // Set selected file in state
+      setImageFileUrl(URL.createObjectURL(file)); // Create temporary URL for preview
     }
   };
 
-  // Effect to upload the image when a new image file is selected
+  // Effect to upload image when a new image file is selected
   useEffect(() => {
     if (imageFile) {
-      uploadImage(); // Call the upload function
+      uploadImage(); // Trigger image upload
     }
-  }, [imageFile]); // Only run effect when imageFile changes
+  }, [imageFile]); // Run effect when imageFile state changes
 
-  // Function to upload image to Firebase Storage
+  // Upload selected image to Firebase Storage
   const uploadImage = async () => {
-    setImageFileUploading(true); // Set uploading state to true
-    setImageFileUploadError(null); // Reset any previous upload errors
-    const storage = getStorage(app); // Get reference to Firebase storage
-    const fileName = new Date().getTime() + imageFile.name; // Create a unique file name based on the current timestamp
-    const storageRef = ref(storage, fileName); // Create a reference for the file in storage
-    const uploadTask = uploadBytesResumable(storageRef, imageFile); // Start the upload task
+    setImageFileUploading(true); // Set upload status to true
+    setImageFileUploadError(null); // Clear previous errors
+    const storage = getStorage(app); // Get Firebase storage reference
+    const fileName = new Date().getTime() + imageFile.name; // Create unique file name
+    const storageRef = ref(storage, fileName); // Create file reference in storage
+    const uploadTask = uploadBytesResumable(storageRef, imageFile); // Start upload
 
-    // Monitor upload progress and handle errors
+    // Monitor upload progress, handle errors, and get download URL on success
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        // Monitor upload progress
+        // Monitor progress
         const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100; // Calculate upload percentage
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setImageFileUploadingProgress(progress.toFixed(0)); // Update progress state
       },
       (error) => {
-        // Handle any upload errors
+        // Handle upload error
         setImageFileUploadError(
-          "Could not upload image (File must be less than 2MB)" // Set appropriate error message
+          "Could not upload image (File must be less than 2MB)"
         );
-        setImageFileUploadingProgress(null); // Reset progress
-        setImageFile(null); // Clear image file state
-        setImageFileUrl(null); // Clear the temporary image URL
-        setImageFileUploading(false); // Set uploading state to false
+        setImageFileUploading(false); // Reset uploading status
+        setImageFileUploadingProgress(null); // Clear progress
       },
       () => {
         // Handle successful upload
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setImageFileUrl(downloadURL); // Set the image URL in state
-          setFormData({ ...formData, profilePicture: downloadURL }); // Update form data with the new image URL
-          setImageFileUploading(false); // End uploading state
+          setImageFileUrl(downloadURL); // Set download URL in state
+          setFormData({ ...formData, profilePicture: downloadURL }); // Update form data with new URL
+          setImageFileUploading(false); // Reset uploading status
         });
       }
     );
   };
 
-  // Function to handle input changes in the form
+  // Update form data state on input change
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value }); // Update form data state based on input changes
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  // Function to handle form submission
+  // Handle form submission for profile update
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission behavior
-    setUpdateUserError(null); // Reset update error state
-    setUpdateUserSuccess(null); // Reset update success state
+    e.preventDefault(); // Prevent default form behavior
+    setUpdateUserError(null); // Clear previous error messages
+    setUpdateUserSuccess(null); // Clear previous success messages
     if (Object.keys(formData).length === 0) {
-      setUpdateUserError("No changes made"); // Alert if no data changes have been made
-      return; // Exit function early
+      setUpdateUserError("No changes made"); // Show error if no changes made
+      return;
     }
     if (imageFileUploading) {
-      setUpdateUserError("Please wait for image to upload"); // Alert if an upload is still in progress
-      return; // Exit function early
+      setUpdateUserError("Please wait for image to upload"); // Show error if upload is in progress
+      return;
     }
     try {
-      dispatch(updateStart()); // Dispatch action to indicate the update process has started
+      dispatch(updateStart()); // Dispatch update start action
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: "PUT", // Set method to PUT for updating user data
-        headers: {
-          "Content-Type": "application/json" // Set headers for the API call
-        },
-        body: JSON.stringify(formData) // Send form data to server
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
       });
-      const data = await res.json(); // Parse response data to JSON
+      const data = await res.json();
       if (!res.ok) {
-        dispatch(updateFailure(data.message)); // Dispatch failure if response not okay
+        dispatch(updateFailure(data.message)); // Dispatch failure if request fails
         setUpdateUserError(data.message); // Show error message
       } else {
         dispatch(updateSuccess(data)); // Dispatch success with user data
         setUpdateUserSuccess("User profile updated successfully"); // Show success message
       }
     } catch (error) {
-      dispatch(updateFailure(error.message)); // Dispatch failure and set error in case of exception
+      dispatch(updateFailure(error.message)); // Dispatch failure on exception
     }
   };
 
-  // Function to handle user deletion
+  // Handle user account deletion
   const handleDeleteUser = async () => {
-    setShowModal(false); // Close the modal
+    setShowModal(false); // Close modal
     try {
-      dispatch(deleteUserStart()); // Dispatch action to indicate deletion process has started
+      dispatch(deleteUserStart()); // Dispatch delete start action
       const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: "DELETE" // Set method to DELETE for user deletion
+        method: "DELETE"
       });
-      const data = await res.json(); // Parse response data to JSON
+      const data = await res.json();
       if (!res.ok) {
-        dispatch(deleteUserFailure(data.message)); // Dispatch failure if response not okay
+        dispatch(deleteUserFailure(data.message)); // Dispatch failure on error
       } else {
-        dispatch(deleteUserSuccess(data)); // Dispatch success upon successful deletion
+        dispatch(deleteUserSuccess(data)); // Dispatch success on successful deletion
       }
     } catch (error) {
-      dispatch(deleteUserFailure(error.message)); // Dispatch failure in case of exception
+      dispatch(deleteUserFailure(error.message)); // Dispatch failure on exception
     }
   };
 
-  // Function to handle user sign out
+  // Handle user sign out
   const handleSignout = async () => {
     try {
-      const res = await fetch("/api/user/signout", {
-        method: "POST" // Set method to POST for signing out
-      });
-      const data = await res.json(); // Parse response data to JSON
-      if (!res.ok) {
-        console.log(data.message); // Log the success message
-      } else {
-        dispatch(signoutSuccess()); // Dispatch success upon successful signout
+      const res = await fetch("/api/user/signout", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        dispatch(signoutSuccess()); // Dispatch success on successful signout
       }
     } catch (error) {
       console.log(error.message);
@@ -173,30 +166,25 @@ function DashProfile() {
 
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
-      {" "}
-      {/* Main container for the profile */}
-      <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>{" "}
-      {/* Header for profile section */}
+      <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        {" "}
-        {/* Form for updating profile information */}
+        {/* File input for selecting profile image */}
         <input
           type="file"
-          accept="image/*" // Accepts image file types
-          onChange={handleImageChange} // Event handler for file selection
-          ref={filePickerRef} // Reference to the input
-          hidden // Hides the input to allow custom button behavior
+          accept="image/*"
+          onChange={handleImageChange}
+          ref={filePickerRef}
+          hidden
         />
-        {/* Profile picture display and upload handler */}
         <div
           className="relative w-32 h-32 self-center cursor-pointer shadow-md overflow-hidden rounded-full"
-          onClick={() => filePickerRef.current.click()} // Trigger file picker on click
+          onClick={() => filePickerRef.current.click()}
         >
-          {imageFileUploadingProgress && ( // Show the progress bar if uploading
+          {imageFileUploadingProgress && (
             <CircularProgressbar
-              value={imageFileUploadingProgress || 0} // Set progress value
-              text={`${imageFileUploadingProgress}%`} // Text to display percentage
-              strokeWidth={5} // Stroke width of the circular progress
+              value={imageFileUploadingProgress || 0}
+              text={`${imageFileUploadingProgress}%`}
+              strokeWidth={5}
               styles={{
                 root: {
                   width: "100%",
@@ -208,83 +196,105 @@ function DashProfile() {
                 path: {
                   stroke: `rgba(62,152,199), ${
                     imageFileUploadingProgress / 100
-                  }` // Dynamic progress bar color
+                  }`
                 }
               }}
             />
           )}
           <img
-            src={imageFileUrl || currentUser.profilePicture} // Profile picture sourced from state or fallback to current user
-            alt="Profile Image" // Alt text for the image
+            src={imageFileUrl || currentUser.profilePicture}
+            alt="Profile Image"
             className={`rounded-full w-full h-full object-cover border-8 border-[lightgray] ${
-              imageFileUploadingProgress && // Adjust opacity based on upload status
+              imageFileUploadingProgress &&
               imageFileUploadingProgress < 100 &&
               "opacity-20"
             }`}
           />
         </div>
-        {/* Show an error message if any upload error occurs */}
         {imageFileUploadError && (
-          <Alert color="failure">{imageFileUploadError}</Alert> // Display error alert
+          <Alert color="failure">{imageFileUploadError}</Alert>
         )}
-        {/* Input field for username */}
+
+        {/* Username input */}
         <TextInput
           type="text"
           id="username"
-          placeholder="username" // Placeholder text
-          defaultValue={currentUser.username} // Default value set to current user's username
-          onChange={handleChange} // Event handler to update form data on change
+          placeholder="username"
+          defaultValue={currentUser.username}
+          onChange={handleChange}
         />
-        {/* Input field for email */}
+
+        {/* Email input */}
         <TextInput
           type="email"
           id="email"
-          placeholder="email" // Placeholder text
-          defaultValue={currentUser.email} // Default value set to current user's email
-          onChange={handleChange} // Event handler to update form data on change
+          placeholder="email"
+          defaultValue={currentUser.email}
+          onChange={handleChange}
         />
-        {/* Input field for password (no default value for security reasons) */}
+
+        {/* Password input */}
         <TextInput
           type="password"
           id="password"
-          placeholder="password" // Placeholder text for password input
-          onChange={handleChange} // Event handler to update form data on change
+          placeholder="password"
+          onChange={handleChange}
         />
-        {/* Button to submit the form */}
-        <Button type="submit" gradientDuoTone="purpleToBlue" outline>
-          Update {/*  Label for the button */}
+
+        {/* Update profile button */}
+        <Button
+          type="submit"
+          gradientDuoTone="purpleToBlue"
+          outline
+          disabled={loading || imageFileUploading}
+        >
+          {loading ? "Loading..." : "Update"}
         </Button>
+
+        {currentUser.isAdmin && (
+          <Link to={"/create-post"}>
+            <Button
+              type="button"
+              gradientDuoTone="purpleToPink"
+              className="w-full"
+            >
+              Create a post
+            </Button>
+          </Link>
+        )}
       </form>
-      {/* Links for account actions */}
+
+      {/* Account actions links */}
       <div className="text-red-500 flex justify-between mt-5">
         <span onClick={() => setShowModal(true)} className="cursor-pointer">
-          Delete Account {/* Link to trigger deletion modal */}
+          Delete Account
         </span>
         <span onClick={handleSignout} className="cursor-pointer">
           Sign Out
-        </span>{" "}
-        {/* Link to sign out */}
+        </span>
       </div>
-      {/* Display success or error messages upon update */}
+
+      {/* Display success or error messages */}
       {updateUserSuccess && (
         <Alert color="success" className="mt-5">
-          {updateUserSuccess} {/* Success alert message */}
+          {updateUserSuccess}
         </Alert>
       )}
       {updateUserError && (
         <Alert color="failure" className="mt-5">
-          {updateUserError} {/* Error alert message */}
+          {updateUserError}
         </Alert>
       )}
       {error && (
         <Alert color="failure" className="mt-5">
-          {error} {/* Error alert message for Redux error state */}
+          {error}
         </Alert>
       )}
-      {/* Modal for confirming account deletion */}
+
+      {/* Account deletion confirmation modal */}
       <Modal
-        show={showModal} // Control modal visibility
-        onClose={() => setShowModal(false)} // Close modal handler
+        show={showModal}
+        onClose={() => setShowModal(false)}
         popup
         size="md"
       >
@@ -310,4 +320,4 @@ function DashProfile() {
   );
 }
 
-export default DashProfile; // Exporting the DashProfile component for use in other parts of the application
+export default DashProfile;

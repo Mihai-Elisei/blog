@@ -9,6 +9,8 @@ import SignIn from "./pages/SignIn"; // Import SignIn page
 import SignUp from "./pages/SignUp"; // Import SignUp page
 import Footer from "./components/Footer"; // Import Footer component
 import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute component for protected routes
+import OnlyAdminPrivateRoute from "./components/OnlyAdminPrivateRoute";
+import CreatePost from "./pages/CreatePost";
 
 function App() {
   return (
@@ -26,6 +28,11 @@ function App() {
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />{" "}
           {/* Protected Dashboard page */}
+        </Route>
+        {/* Private route for admin users */}
+        <Route element={<OnlyAdminPrivateRoute />}>
+          <Route path="/create-post" element={<CreatePost />} />{" "}
+          {/* Protected create post page */}
         </Route>
         {/* Projects page is public */}
         <Route path="/projects" element={<Projects />} /> {/* Projects page */}
