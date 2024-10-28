@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom"; // Import useLocation to access URL parameters
 import DashSidebar from "../components/DashSidebar"; // Import sidebar component
 import DashProfile from "../components/DashProfile"; // Import profile component
+import DashPosts from "../components/DashPosts"; // Import posts component
 
 function Dashboard() {
   const location = useLocation(); // Access the current URL location
@@ -26,6 +27,8 @@ function Dashboard() {
       </div>
       {/* Render profile component only if the 'profile' tab is active */}
       {tab === "profile" && <DashProfile />}
+      {/* Render posts component only if the 'posts' tab is active */}
+      {tab === "posts" && <DashPosts />}
     </div>
   );
 }
