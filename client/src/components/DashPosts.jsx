@@ -8,6 +8,7 @@ function DashPosts() {
   // Access the currentUser from Redux state
   const { currentUser } = useSelector((state) => state.user);
   const [userPosts, setUserPosts] = useState([]); // State to hold the fetched user's posts
+  const [showMore, setShowMore] = useState(true); // State to toggle show more posts
 
   // Log the userPosts to the console for debugging
   console.log(userPosts);
@@ -25,6 +26,7 @@ function DashPosts() {
         // Check if the response is OK and set the state with the posts data
         if (response.ok) {
           setUserPosts(data.posts);
+          if (data.posts.length < 9) setShowMore(false);
         }
       } catch (error) {
         console.error(error); // Log any errors that occur during the fetch
@@ -34,6 +36,25 @@ function DashPosts() {
     // Only fetch posts if the current user is an admin
     if (currentUser.isAdmin) fetchPosts();
   }, [currentUser._id]); // Effect runs when currentUser._id changes
+
+  // Function to handle the show more button
+  const handleShowMore = async () => {
+    const startIndex = userPosts.length; // This will give the count of already fetched posts
+    try {
+      // Include `limit` to specify how many more posts to fetch, e.g., 9 (same as initial fetch)
+      const res = await fetch(
+        `/api/post/getposts?userId=${currentUser._id}&startIndex=${startIndex}&limit=9`
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setUserPosts((prev) => [...prev, ...data.posts]); // Append new posts to existing ones
+        // If no new posts returned, hide the button
+        if (data.posts.length < 9) setShowMore(false);
+      }
+    } catch (error) {
+      console.error(error); // Handle error
+    }
+  };
 
   return (
     <div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
@@ -100,6 +121,15 @@ function DashPosts() {
               </Table.Body>
             ))}
           </Table>
+          {/*Show more button*/}
+          {showMore && (
+            <button
+              onClick={handleShowMore}
+              className="w-full text-teal-500 self-center text-sm py-7"
+            >
+              Show More
+            </button>
+          )}
         </>
       ) : (
         // Message for users with no posts
