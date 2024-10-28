@@ -107,3 +107,33 @@ export const deletePost = async (req, res, next) => {
     next(errorHandler(500, error.message));
   }
 };
+
+export const updatepost = async (req, res, next) => {
+  // Check if the user is an admin or is the owner of the post
+  // If not authorized, return a 403 error
+  if (!req.user.isAdmin || req.user.id !== req.params.userId) {
+    return next(errorHandler(403, "You are not allowed to update this post"));
+  }
+
+  try {
+    // Attempt to find the post by its ID and update it with new values
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.postId, // The ID of the post to update
+      {
+        $set: {
+          title: req.body.title, // Update title with the new value from the request body
+          content: req.body.content, // Update content with the new value
+          category: req.body.category, // Update category with the new value
+          image: req.body.image // Update image URL with the new value
+        }
+      },
+      { new: true } // Return the updated document
+    );
+
+    // If the update is successful, return the updated post as JSON
+    res.status(200).json(updatedPost);
+  } catch (error) {
+    // If an error occurs, pass it to the next middleware/error handler
+    next(error);
+  }
+};

@@ -107,7 +107,7 @@ function CreatePost() {
   };
 
   return (
-    <div className="p-3 mx-w-3lx mx-auto min-h-screen">
+    <div className="p-3 max-w-3xl mx-auto min-h-screen">
       {/* Page title */}
       <h1 className="text-center text-3xl my-7 font-semibold">Create a post</h1>
 

@@ -11,6 +11,7 @@ import Footer from "./components/Footer"; // Import Footer component
 import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute component for protected routes
 import OnlyAdminPrivateRoute from "./components/OnlyAdminPrivateRoute";
 import CreatePost from "./pages/CreatePost";
+import UpdatePost from "./pages/UpdatePost";
 
 function App() {
   return (
@@ -31,7 +32,8 @@ function App() {
         </Route>
         {/* Private route for admin users */}
         <Route element={<OnlyAdminPrivateRoute />}>
-          <Route path="/create-post" element={<CreatePost />} />{" "}
+          <Route path="/create-post" element={<CreatePost />} />
+          <Route path="/update-post/:postId" element={<UpdatePost />} />
           {/* Protected create post page */}
         </Route>
         {/* Projects page is public */}
