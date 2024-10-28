@@ -87,3 +87,23 @@ export const getPosts = async (req, res, next) => {
     next(errorHandler(500, error.message)); // Call the next middleware with an error
   }
 };
+
+// Controller function to delete a post
+export const deletePost = async (req, res, next) => {
+  // Check if the user making the request is an admin and if the user ID in the request matches the ID in the parameters
+  if (!req.user.isAdmin || req.user.id !== req.params.userId) {
+    // If the user is not authorized, call the error handler with a 401 Unauthorized status
+    return next(errorHandler(401, "Unauthorized"));
+  }
+
+  try {
+    // Attempt to find and delete the post with the specified post ID from the request parameters
+    await Post.findByIdAndDelete(req.params.postId);
+    // If successful, respond with a 200 HTTP status and a success message
+    res.status(200).json("Post has been deleted");
+  } catch (error) {
+    // Catch any errors that occur during the deletion process
+    // Pass the error to the error handler with a 500 Internal Server Error status
+    next(errorHandler(500, error.message));
+  }
+};
