@@ -54,7 +54,23 @@ function DashUsers() {
   };
 
   // Function to handle deleting a user (implementation to be defined)
-  const handleDeleteUser = async () => {};
+  const handleDeleteUser = async () => {
+    try {
+      const res = await fetch(`/api/user/delete/${userIdToDelete}`, {
+        method: "DELETE" // Send a DELETE request to the API
+      });
+      const data = await res.json(); // Parse the response as JSON
+      if (res.ok) {
+        // Handle the response if the request was successful
+        setUsers((prev) => prev.filter((user) => user._id !== userIdToDelete)); // Remove the deleted user from the list
+        setShowModal(false); // Close the confirmation modal
+      } else {
+        console.error(data.message); // Log any errors encountered during the fetch
+      }
+    } catch (error) {
+      console.error(error); // Log any errors encountered during the fetch
+    }
+  };
 
   return (
     <div className="table-auto w-full overflow-x-auto sm:overflow-x-scroll md:overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
