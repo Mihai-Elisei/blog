@@ -12,6 +12,7 @@ import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute com
 import OnlyAdminPrivateRoute from "./components/OnlyAdminPrivateRoute";
 import CreatePost from "./pages/CreatePost";
 import UpdatePost from "./pages/UpdatePost";
+import PostPage from "./pages/PostPage";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
         </Route>
         {/* Projects page is public */}
         <Route path="/projects" element={<Projects />} /> {/* Projects page */}
+        <Route path="/post/:postSlug" element={<PostPage />} />
       </Routes>
 
       {/* Footer displayed on all pages */}
