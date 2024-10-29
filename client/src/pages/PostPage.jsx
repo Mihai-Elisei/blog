@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"; // Import React and hooks
 import { useParams } from "react-router-dom"; // Import useParams hook to access route parameters
 import { Button, Spinner } from "flowbite-react"; // Import Button and Spinner components from Flowbite
 import { Link } from "react-router-dom"; // Import Link component for navigation
+import CallToAction from "../components/CallToAction";
 
 function PostPage() {
   const { postSlug } = useParams(); // Extract the post slug from the URL parameters
@@ -82,6 +83,9 @@ function PostPage() {
         className="p-3 max-w-2xl mx-auto w-full post-content"
         dangerouslySetInnerHTML={{ __html: post && post.content }} // Render HTML content
       ></div>
+      <div className="max-w-4xl mx-auto w-full">
+        <CallToAction />
+      </div>
     </main>
   );
 }
