@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Sidebar } from "flowbite-react"; // Import Sidebar component from Flowbite-React
-import { HiArrowSmRight, HiDocumentText, HiUser } from "react-icons/hi"; // Import icons
+import { HiArrowSmRight, HiDocumentText, HiOutlineUserGroup, HiUser } from "react-icons/hi"; // Import icons
 import { Link, useLocation } from "react-router-dom"; // Import Link for navigation and useLocation to track current route
 import { signoutSuccess } from "../redux/user/userSlice"; // Import signout action
 import { useDispatch } from "react-redux"; // Import Redux hook
@@ -57,15 +57,26 @@ function DashSidebar() {
 
           {/* Link to the posts tab with URL parameter */}
           {currentUser.isAdmin && (
-            <Link to="/dashboard?tab=posts">
-              <Sidebar.Item
-                active={tab === "posts"}
-                icon={HiDocumentText}
-                as="div"
-              >
-                Posts
-              </Sidebar.Item>
-            </Link>
+            <>
+              <Link to="/dashboard?tab=posts">
+                <Sidebar.Item
+                  active={tab === "posts"}
+                  icon={HiDocumentText}
+                  as="div"
+                >
+                  Posts
+                </Sidebar.Item>
+              </Link>
+              <Link to="/dashboard?tab=users">
+                <Sidebar.Item
+                  active={tab === "users"}
+                  icon={HiOutlineUserGroup}
+                  as="div"
+                >
+                  Users
+                </Sidebar.Item>
+              </Link>
+            </>
           )}
 
           {/* Sign Out option (currently only a label without functionality) */}
