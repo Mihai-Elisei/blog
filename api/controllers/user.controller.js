@@ -1,6 +1,7 @@
 import { errorHandler } from "../utils/error.js"; // Import error handler utility
 import bcryptjs from "bcryptjs"; // Import bcryptjs for password hashing
 import User from "../models/user.model.js"; // Import User model
+import { parse } from "dotenv";
 
 export const updateUser = async (req, res, next) => {
   // Check if the authenticated user is authorized to update their account
@@ -82,5 +83,44 @@ export const signout = (req, res, next) => {
     res.clearCookie("access_token").status(200).json("Signout successful"); // Clear the access token cookie and respond with a success message
   } catch (error) {
     next(error); // Handle any errors that occurred while signing out
+  }
+};
+
+export const getusers = async (req, res, next) => {
+  if (!req.user.isAdmin) {
+    return next(errorHandler(403, "You are not allowed to view all users")); // Respond with a forbidden error if they are not authorized
+  }
+  try {
+    const startIndex = parseInt(req.query.startIndex) || 0; // Get the start index from the query parameters
+    const limit = parseInt(req.query.limit) || 10; // Get the limit from the query parameters
+    const sortDirection = req.query.sort === "asc" ? 1 : -1; // Get the sort direction from the query parameters
+
+    const users = await User.find() // Fetch all users from the database
+      .sort({ createdAt: sortDirection }) // Sort the users by creation date
+      .skip(startIndex) // Skip the first N users
+      .limit(limit); // Limit the number of users returned
+
+    const usersWithowtPassword = users.map((user) => {
+      const { password, ...rest } = user._doc;
+      return rest;
+    });
+
+    const totalUsers = await User.countDocuments(); // Count the total number of users in the database
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+    const lastMonthUsers = await User.countDocuments({
+      createdAt: { $gte: oneMonthAgo }
+    });
+    res.status(200).json({
+      users: usersWithowtPassword, // Send the users array
+      totalUsers, // Send the total number of users
+      lastMonthUsers // Send the number of users created in the last month
+    });
+  } catch (error) {
+    next(error); // Handle any errors that occurred while fetching users
   }
 };
