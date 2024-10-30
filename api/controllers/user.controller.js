@@ -124,3 +124,16 @@ export const getusers = async (req, res, next) => {
     next(error); // Handle any errors that occurred while fetching users
   }
 };
+
+export const getuser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId); // Fetch the user by ID
+    if (!user) {
+      return next(errorHandler(404, "User not found")); // Respond with a not found error if the user does not exist
+    }
+    const { password, ...rest } = user._doc; // Exclude the password from the response
+    res.status(200).json(rest); // Send the user information, excluding the password
+  } catch (error) {
+    next(error); // Handle any errors that occurred while fetching the user
+  }
+};
