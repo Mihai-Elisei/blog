@@ -36,3 +36,31 @@ export const getPostComments = async (req, res) => {
     next(error); // Pass any errors to the error handling middleware
   }
 };
+
+// Controller function to like a comment
+export const likeComment = async (req, res, next) => {
+  try {
+    // Find the comment by ID and increment the likes count
+    const comment = await Comment.findById(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json("Comment not found");
+    }
+
+    const userIndex = comment.likes.indexOf(req.user.id); // Check if user has already liked the comment
+
+    if (userIndex === -1) {
+      comment.numberOfLikes += 1; // Increment the number of likes
+      comment.likes.push(req.user.id); // Add the user's ID to the likes array
+    } else {
+      comment.numberOfLikes -= 1; // Decrement the number of likes
+      comment.likes.splice(userIndex, 1); // Remove the user's ID from the likes array
+    }
+
+    await comment.save(); // Save the updated comment to the database
+    // Send the updated comment as a JSON response
+    res.status(200).json(comment);
+  } catch (error) {
+    next(error); // Pass any errors to the error handling middleware
+  }
+};
