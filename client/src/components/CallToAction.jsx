@@ -35,6 +35,7 @@ function CallToAction() {
         <img
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1DmLCy9PSJfFqO55mNTYOQLx3x8THsbokkw&s" // Placeholder image for the call-to-action section
           alt="Image" // Alt text for accessibility
+          className="w-full h-full object-cover rounded-br-3xl"
         />
       </div>
     </div>

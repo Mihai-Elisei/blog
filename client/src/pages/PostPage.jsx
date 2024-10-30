@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom"; // Import useParams hook to access
 import { Button, Spinner } from "flowbite-react"; // Import Button and Spinner components from Flowbite
 import { Link } from "react-router-dom"; // Import Link component for navigation
 import CallToAction from "../components/CallToAction";
+import CommentSection from "../components/CommentSection";
 
 function PostPage() {
   const { postSlug } = useParams(); // Extract the post slug from the URL parameters
@@ -86,6 +87,7 @@ function PostPage() {
       <div className="max-w-4xl mx-auto w-full">
         <CallToAction />
       </div>
+      <CommentSection postId={post._id} />
     </main>
   );
 }
