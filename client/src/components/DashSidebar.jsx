@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Sidebar } from "flowbite-react"; // Import Sidebar component from Flowbite-React
-import { HiAnnotation, HiArrowSmRight, HiDocumentText, HiOutlineUserGroup, HiUser } from "react-icons/hi"; // Import icons
+import {
+  HiAnnotation,
+  HiArrowSmRight,
+  HiChartPie,
+  HiDocumentText,
+  HiOutlineUserGroup,
+  HiUser
+} from "react-icons/hi"; // Import icons
 import { Link, useLocation } from "react-router-dom"; // Import Link for navigation and useLocation to track current route
 import { signoutSuccess } from "../redux/user/userSlice"; // Import signout action
 import { useDispatch } from "react-redux"; // Import Redux hook
@@ -42,22 +49,18 @@ function DashSidebar() {
       {/* Sidebar container with responsive width */}
       <Sidebar.Items>
         <Sidebar.ItemGroup className="flex flex-col gap-1">
-          {/* Link to the Profile tab with URL parameter */}
-          <Link to="/dashboard?tab=profile">
-            <Sidebar.Item
-              active={tab === "profile"} // Set active style if 'profile' is the current tab
-              icon={HiUser} // Display user icon
-              label={currentUser.isAdmin ? "Admin" : "User"} // Label text next to the icon
-              labelColor="dark" // Dark label color
-              as="div"
-            >
-              Profile
-            </Sidebar.Item>
-          </Link>
-
           {/* Link to the posts tab with URL parameter */}
           {currentUser.isAdmin && (
             <>
+              <Link to="/dashboard?tab=dash">
+                <Sidebar.Item
+                  active={tab === "dash" || !tab}
+                  icon={HiChartPie}
+                  as="div"
+                >
+                  Dashboard
+                </Sidebar.Item>
+              </Link>
               <Link to="/dashboard?tab=posts">
                 <Sidebar.Item
                   active={tab === "posts"}
@@ -87,7 +90,18 @@ function DashSidebar() {
               </Link>
             </>
           )}
-
+          {/* Link to the Profile tab with URL parameter */}
+          <Link to="/dashboard?tab=profile">
+            <Sidebar.Item
+              active={tab === "profile"} // Set active style if 'profile' is the current tab
+              icon={HiUser} // Display user icon
+              label={currentUser.isAdmin ? "Admin" : "User"} // Label text next to the icon
+              labelColor="dark" // Dark label color
+              as="div"
+            >
+              Profile
+            </Sidebar.Item>
+          </Link>
           {/* Sign Out option (currently only a label without functionality) */}
           <Sidebar.Item
             icon={HiArrowSmRight}
