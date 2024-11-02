@@ -1,6 +1,6 @@
 import { Avatar, Button, Dropdown, Navbar, TextInput } from "flowbite-react"; // Import Flowbite-React UI components
-import React from "react";
-import { Link, useLocation } from "react-router-dom"; // Import Link for navigation and useLocation to track current route
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Import Link for navigation and useLocation to track current route
 import { AiOutlineSearch } from "react-icons/ai"; // Import search icon
 import { FaMoon, FaSun } from "react-icons/fa"; // Import icons for theme toggle
 import { useSelector, useDispatch } from "react-redux"; // Import Redux hooks
@@ -10,9 +10,20 @@ import { signoutSuccess } from "../redux/user/userSlice"; // Import signout acti
 function Header() {
   // Get the current path to set active navbar links
   const path = useLocation().pathname;
+  const location = useLocation(); // Get the current location object
   const dispatch = useDispatch(); // Get the dispatch function for Redux actions
+  const navigate = useNavigate(); // Get the navigate function for navigation
   const { currentUser } = useSelector((state) => state.user); // Access the current user from Redux state
   const { theme } = useSelector((state) => state.theme); // Access current theme from Redux state
+  const [searchTerm, setSearchTerm] = useState(""); // State to store search term
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchTermFromUrl = urlParams.get("searchTerm");
+    if (searchTermFromUrl) {
+      setSearchTerm(searchTermFromUrl);
+    }
+  }, [location.search]);
 
   // Function to handle user sign out
   const handleSignout = async () => {
@@ -31,6 +42,14 @@ function Header() {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const urlParams = new URLSearchParams(location.search);
+    urlParams.set("searchTerm", searchTerm);
+    const searchQuery = urlParams.toString();
+    navigate(`/search?${searchQuery}`);
+  };
+
   return (
     <Navbar className="border-b-2">
       {" "}
@@ -47,12 +66,14 @@ function Header() {
         Blog
       </Link>
       {/* Search input for large screens */}
-      <form>
+      <form onSubmit={handleSubmit}>
         <TextInput
           type="text"
           placeholder="Search..."
           rightIcon={AiOutlineSearch} // Display search icon inside input
           className="hidden lg:inline" // Show only on large screens
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)} // Update search term state
         />
       </form>
       {/* Search button for mobile screens */}
