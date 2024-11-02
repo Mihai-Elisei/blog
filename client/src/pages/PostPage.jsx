@@ -2,14 +2,16 @@ import React, { useEffect, useState } from "react"; // Import React and hooks
 import { useParams } from "react-router-dom"; // Import useParams hook to access route parameters
 import { Button, Spinner } from "flowbite-react"; // Import Button and Spinner components from Flowbite
 import { Link } from "react-router-dom"; // Import Link component for navigation
-import CallToAction from "../components/CallToAction";
-import CommentSection from "../components/CommentSection";
+import CallToAction from "../components/CallToAction"; // Import CallToAction component
+import CommentSection from "../components/CommentSection"; // Import CommentSection component
+import PostCard from "../components/PostCard"; // Import PostCard component
 
 function PostPage() {
   const { postSlug } = useParams(); // Extract the post slug from the URL parameters
   const [loading, setLoading] = useState(true); // State to manage loading state
   const [error, setError] = useState(false); // State to manage error state
   const [post, setPost] = useState(null); // State to store the fetched post data
+  const [recentPosts, setRecentPosts] = useState(null); // State to store the fetched recent posts
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -39,6 +41,20 @@ function PostPage() {
     fetchPost(); // Call the fetchPost function to retrieve the post data
   }, [postSlug]); // Dependency array: effect runs when postSlug changes
 
+  useEffect(() => {
+    try {
+      const fetchRecentPosts = async () => {
+        const res = await fetch(`/api/post/getposts?limit=3`); // Fetch recent posts
+        const data = await res.json(); // Parse the JSON response
+        if (res.ok) {
+          setRecentPosts(data.posts); // Update the recentPosts state with the fetched data
+        }
+      };
+      fetchRecentPosts(); // Call the fetchRecentPosts function
+    } catch (error) {
+      console.log(error.message); // Log any errors that occur during fetch
+    }
+  }, []);
   // Render a Spinner component while loading
   if (loading)
     return (
@@ -88,6 +104,15 @@ function PostPage() {
         <CallToAction />
       </div>
       <CommentSection postId={post._id} />
+
+      {/* Render recent articles */}
+      <div className="flex flex-col justify-center items-center mb-5">
+        <h1 className="text-xl mt-5">Recent articles</h1>
+        <div className="flex flex-wrap gap-5 mt-5 justify-center">
+          {recentPosts &&
+            recentPosts.map((post) => <PostCard key={post._id} post={post} />)}
+        </div>
+      </div>
     </main>
   );
 }
