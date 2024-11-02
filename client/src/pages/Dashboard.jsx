@@ -4,6 +4,7 @@ import DashSidebar from "../components/DashSidebar"; // Import sidebar component
 import DashProfile from "../components/DashProfile"; // Import profile component
 import DashPosts from "../components/DashPosts"; // Import posts component
 import DashUsers from "../components/DashUsers"; // Import users component
+import DashComments from "../components/DashComments"; // Import comments component
 
 function Dashboard() {
   const location = useLocation(); // Access the current URL location
@@ -32,6 +33,8 @@ function Dashboard() {
       {tab === "posts" && <DashPosts />}
       {/* Render users component only if the 'users' tab is active */}
       {tab === "users" && <DashUsers />}
+      {/* Render comments component only if the 'comments' tab is active */}
+      {tab === "comments" && <DashComments />}
     </div>
   );
 }
