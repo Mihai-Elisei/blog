@@ -84,61 +84,62 @@ export const signin = async (req, res, next) => {
   }
 };
 
-// Google authentication function
 export const google = async (req, res, next) => {
-  const { email, name, googlePhotoUrl } = req.body;
+  const { email, name, photoURL } = req.body;
+
+  console.log("Received Google auth data:", { email, name, photoURL });
 
   try {
     // Check if a user with the given email already exists.
     let user = await User.findOne({ email });
 
-    // If user exists, generate a JWT and return the user data.
     if (user) {
       const token = jwt.sign(
         { id: user._id, isAdmin: user.isAdmin },
         process.env.JWT_SECRET_KEY,
-        {
-          expiresIn: "1h"
-        }
+        { expiresIn: "1h" }
       );
       const { password, ...rest } = user._doc;
       return res
         .status(200)
         .cookie("access_token", token, {
-          httpOnly: true
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production", // Set secure only in production
+          sameSite: "Strict"
         })
         .json(rest);
     } else {
-      // If user does not exist, create a new user with a random generated password.
+      // Generate a random password and hash it
       const generatedPassword =
         Math.random().toString(36).slice(-8) +
         Math.random().toString(36).slice(-8);
       const hashedPassword = bcryptjs.hashSync(generatedPassword, 12);
 
+      // Create a new user with the received Google information
       user = new User({
         username:
-          name.toLowerCase().split(" ").join("") +
+          name.toLowerCase().replace(/\s+/g, "") +
           Math.random().toString(9).slice(-4),
         email,
         password: hashedPassword,
-        profilePicture: googlePhotoUrl
+        profilePicture: photoURL
       });
 
-      await user.save(); // Save the new user to the database.
+      await user.save();
 
-      // Generate JWT token for the new user and return user data.
+      // Generate token and return response
       const token = jwt.sign(
-        { id: user._id, isAdmin: newUser.isAdmin },
+        { id: user._id, isAdmin: user.isAdmin },
         process.env.JWT_SECRET_KEY,
-        {
-          expiresIn: "1h"
-        }
+        { expiresIn: "1h" }
       );
       const { password, ...rest } = user._doc;
       return res
         .status(200)
         .cookie("access_token", token, {
-          httpOnly: true
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "Strict"
         })
         .json(rest);
     }

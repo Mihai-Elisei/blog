@@ -64,3 +64,45 @@ export const likeComment = async (req, res, next) => {
     next(error); // Pass any errors to the error handling middleware
   }
 };
+
+// Controller function to edit a comment
+export const editComment = async (req, res, next) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId); // Find the comment by ID
+    if (!comment) {
+      return res.status(404).json("Comment not found"); // Return a 404 status if comment is not found
+    }
+
+    if (comment.userId !== req.user.id && !req.user.isAdmin) {
+      return res.status(401).json("Unauthorized"); // Return unauthorized status if user is not the comment author or an admin
+    }
+
+    const editedComment = await Comment.findByIdAndUpdate(
+      req.params.commentId,
+      { content: req.body.content }, // Update the content of the comment
+      { new: true } // Return the updated comment
+    );
+    res.status(200).json(editedComment); // Send the updated comment as a JSON response
+  } catch (error) {
+    next(error); // Pass any errors to the error handling middleware
+  }
+};
+
+// Controller function to delete a comment
+export const deleteComment = async (req, res, next) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId); // Find the comment by ID
+    if (!comment) {
+      return res.status(404).json("Comment not found"); // Return a 404 status if comment is not found
+    }
+
+    if (comment.userId !== req.user.id && !req.user.isAdmin) {
+      return res.status(401).json("Unauthorized"); // Return unauthorized status if user is not the comment author or an admin
+    }
+
+    await Comment.findByIdAndDelete(req.params.commentId); // Delete the comment from the database
+    res.status(200).json("Comment deleted successfully"); // Send a success message
+  } catch (error) {
+    next(error); // Pass any errors to the error handling middleware
+  }
+};
